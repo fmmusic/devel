@@ -2,6 +2,8 @@
 
 if(php_sapi_name() !== 'cli') exit;
 
+set_time_limit(0);
+
 include_once 'lib/hQuery.php/hquery.php';
 include_once 'lib/utils.php';
 
@@ -55,7 +57,6 @@ foreach($songs as $id=>$song) {
 
     // todo: check if we have data already
     if (is_dir("data/$id")) {
-        exit;
         continue;
     } else {
         mkdir("data/$id");
@@ -98,9 +99,13 @@ foreach($songs as $id=>$song) {
     $data['long_desc'] = $long_desc;
 
     $audio = $doc->find('li.jp-selectedtrack > a');
-    $mp3_url = $audio->attr('data-jptrack');
-    copy($mp3_url, "data/$id/$slug.mp3");
-    $data['mp3'] = "$slug.mp3";
+    if($audio) {
+        $mp3_url = $audio->attr('data-jptrack');
+        copy($mp3_url, "data/$id/$slug.mp3");
+        $data['mp3'] = "$slug.mp3";
+    } else {
+        echo "NO MP3 FOUND FOR $id\n";
+    }
 
     $preview_jpgs = array();
     $images = $doc->find('.modalSmallImages img');
@@ -138,5 +143,6 @@ foreach($songs as $id=>$song) {
     
     file_put_contents("data/$id/data.json", json_encode($data, JSON_PRETTY_PRINT));
 
-    exit;
+    sleep(3);
+    
 }
